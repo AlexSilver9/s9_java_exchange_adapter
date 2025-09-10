@@ -28,7 +28,9 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'io.projectreactor.netty:reactor-netty-http'
+    implementation 'org.apache.kafka:kafka-streams'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	//developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
