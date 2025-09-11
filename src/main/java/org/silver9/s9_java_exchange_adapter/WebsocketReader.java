@@ -1,19 +1,23 @@
 package org.silver9.s9_java_exchange_adapter;
 
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.socket.WebSocketMessage;
-import org.springframework.web.reactive.socket.WebSocketSession;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 
 import java.net.URI;
 import java.time.Duration;
 
-@Component
+@Configuration
 public class WebsocketReader {
+
+    @Bean
+    public CommandLineRunner commandLineRunner() {
+        return _ -> read();
+    }
 
     public void read() {
         // Configure connection pool for optimal performance
@@ -28,19 +32,31 @@ public class WebsocketReader {
         // Create optimized HTTP client
         HttpClient httpClient = HttpClient.create(provider)
                 .option(io.netty.channel.ChannelOption.TCP_NODELAY, true)
-                .option(io.netty.channel.ChannelOption.SO_KEEPALIVE, true);
+                .option(io.netty.channel.ChannelOption.SO_KEEPALIVE, true)
+                .secure(); // Uses system's default SSL context with proper certificate validation
+                /*.secure(sslContextSpec -> {
+                    try {
+                        sslContextSpec.sslContext(SslContextBuilder.forClient()
+                                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                                .build());
+                    } catch (SSLException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                 */
 
         // Create the WebSocket client
         WebSocketClient client = new ReactorNettyWebSocketClient(httpClient);
 
-        client.execute(URI.create("wss://stream.binance.com:9443/ws?streams=btcusdt@trade&timeUnit=MICROSECOND"), webSocketSession -> {
-            webSocketSession
-                    .send(subscriber -> subscriber.onNext(WebSocketMessage.TextMessage.of("Hello, WebSocket!")))
-                    .receive()
-                    .map(WebSocketMessage::getNativeMessage)
-                    .subscribe(System.out::println);
-            return webSocketSession.close();
-        });
-
+        client.execute(URI.create("wss://fstream.binance.com:443/stream?streams=btcusdt@trade"), webSocketSession ->
+        //client.execute(URI.create("wss://stream.binance.com:9443/stream?streams=btcusdt@trade"), webSocketSession ->
+                        webSocketSession
+                                .receive()
+                                .map(webSocketMessage -> webSocketMessage.getPayloadAsText())
+                                .doOnNext(s -> System.out.println("Received: " + s))
+                                .doOnError(e -> System.err.println("Error: " + e.getMessage()))
+                                .then())
+                .doOnError(e -> System.err.println("Connection Error: " + e.getMessage()))
+                .subscribe();
     }
 }
