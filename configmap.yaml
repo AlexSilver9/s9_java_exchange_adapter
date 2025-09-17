@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: s9-java-exchange-adapter-configmap
+data:
+  silver9.user.name: "Don Silveleone from ConfigMap"

@@ -11,7 +11,7 @@ description = 's9_java_exchange_adapter'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(24)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -31,8 +31,9 @@ dependencies {
     //implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework:spring-webflux'
     implementation 'io.projectreactor.netty:reactor-netty-http'
-    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.124.Final:osx-aarch_64'
+    //implementation 'io.netty:netty-resolver-dns-native-macos:4.1.124.Final:osx-aarch_64'
     implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.springframework.kafka:spring-kafka'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	//developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'

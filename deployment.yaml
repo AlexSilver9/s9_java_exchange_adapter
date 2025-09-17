@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: s9-java-exchange-adapter
+  namespace: default
+  labels:
+    app: s9-java-exchange-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s9-java-exchange-adapter
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: s9-java-exchange-adapter
+      annotations:
+        gke-gcsfuse/volumes: "true"
+    spec:
+      containers:
+      - image: europe-central2-docker.pkg.dev/silver9/docker-registry/s9_java_exchange_adapter:0.0.1-SNAPSHOT
+        imagePullPolicy: Always
+        name: s9-java-exchange-adapter
+        resources: {}
+        envFrom:
+          - configMapRef:
+              name: s9-java-exchange-adapter-configmap
+          - secretRef:
+              name: s9-java-exchange-adapter-secret
+        volumeMounts:
+          - mountPath: /app/tmpdir
+            name: gcs-fuse-csi-pv
+            readOnly: false
+      serviceAccountName: silver9-bucket-01-serviceaccount
+      volumes:
+        - name:   gcs-fuse-csi-pv
+          persistentVolumeClaim:
+            claimName: gcs-fuse-csi-static-pvc
+            readOnly: false
+      #initContainers:
+      #  - name: init-container
+      #    image: busybox:1.28
+      #    command: ['sh', '-c', 'echo "Init Conainer"']
+      #  - name: sidecar-container
+      #    restartPolicy: Always
+      #    image: busybox:1.28
+      #    command: [ 'sh', '-c', 'watch time' ]
+
+status: {}
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: s9-java-exchange-adapter
+  name: s9-java-exchange-adapter
+spec:
+  ports:
+  - name: 8080-8080
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: s9-java-exchange-adapter
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---

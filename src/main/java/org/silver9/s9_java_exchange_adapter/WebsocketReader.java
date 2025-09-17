@@ -1,5 +1,6 @@
 package org.silver9.s9_java_exchange_adapter;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +15,12 @@ import java.time.Duration;
 @Configuration
 public class WebsocketReader {
 
+    @Autowired
+    private Shovel shovel;
+
     @Bean
     public CommandLineRunner commandLineRunner() {
-        return _ -> read();
+        return args -> read();
     }
 
     public void read() {
@@ -53,7 +57,8 @@ public class WebsocketReader {
                         webSocketSession
                                 .receive()
                                 .map(webSocketMessage -> webSocketMessage.getPayloadAsText())
-                                .doOnNext(s -> System.out.println("Received: " + s))
+                                //.doOnNext(s -> System.out.println("Received: " + s))
+                                .doOnNext(s -> shovel.onNextMessage(s))
                                 .doOnError(e -> System.err.println("Error: " + e.getMessage()))
                                 .then())
                 .doOnError(e -> System.err.println("Connection Error: " + e.getMessage()))
